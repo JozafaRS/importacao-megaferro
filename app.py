@@ -123,7 +123,7 @@ def page_upload():
                 
 
 def main():
-    st.set_page_config(layout='wide', page_title="Frigosol")
+    st.set_page_config(layout='wide', page_title="Megaferro")
     page_upload()
 
 if __name__ == "__main__":
