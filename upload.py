@@ -31,12 +31,37 @@ def validar_planilha(data_frame: pd.DataFrame) -> None:
     if not pd.api.types.is_datetime64_any_dtype(data_frame['Ultima Negociacao']):
         raise TypeError('A coluna Ultima Negociacao não é do tipo datetime.')
     
+def validar_planilha_nao_faturado(data_frame: pd.DataFrame) -> None:
+    colunas_esperadas = ['Nro. Único', 'Vendedor', 'Nome (Usuário Alteração)', 'Tipo Operação',
+       'Descrição (Tipo de Operação)', 'Parceiro', 'Nome Parceiro (Parceiro)',
+       'Vlr. Nota', 'Desc Médio', 'Nro. Nota', 'Caixa', 'ENTREGUE',
+       'Anular Comissão', 'Comissão', 'Cód. Usuário', 'Status NF-e', 'Empresa',
+       'Dt. do Faturamento', 'Liberação', 'Confirmada', 'Pendente',
+       'NOME RÁPIDO', 'Previsão de entrega', 'Dt. Neg.', 'Apelido (Vendedor)',
+       'Nome Fantasia (Empresa)', 'Tipo Negociação',
+       'Descrição (Tipo de Negociação)', 'Natureza', 'Centro Resultado',
+       'Descrição (Centro de Resultado)']
+    
+    if data_frame.empty:
+        raise ValueError('Planilha Vazia')
+
+    if list(data_frame.columns) != colunas_esperadas:
+        raise TypeError('Colunas Incompatíveis')
+    
 def formatar_data_frame(df_original: pd.DataFrame) -> pd.DataFrame:
     data_frame = df_original.copy()
     
     data_frame.columns = data_frame.columns.to_series().apply(lambda x: x.lower().replace(" ", "_").replace("ó", "o").replace(".", "_"))
     data_frame['data'] = pd.to_datetime(data_frame['data'], dayfirst=True)
     data_frame['data_ajustada'] = data_frame['data']
+    data_frame['ficticio'] = 1
+    
+    return data_frame
+
+def formatar_df_nao_faturado(df_original: pd.DataFrame) -> pd.DataFrame:
+    data_frame = df_original.copy()
+    
+    data_frame.columns = data_frame.columns.to_series().apply(lambda x: x.replace("(", "_").replace("__", "_").replace(")","").replace('.', "_").replace(" _", "_").replace(" ", "_").replace("-", "_").replace("ç", "c").replace("ó", "o").replace("Á", "A").replace("ã", "a").replace("é", "e").replace("á", "a").replace("Ú", "U").replace("__", "_"))
     data_frame['ficticio'] = 1
     
     return data_frame
@@ -50,7 +75,10 @@ def filtrar_novos_dados(data_frame: pd.DataFrame, tabela: str, campo: str = "uni
     
     return df_filtrado
 
-
-def adicionar_registros(data_frame: pd.DataFrame, nome_tabela: str):
-    conn = sqlalchemy.create_engine(URL_DB)  
-    data_frame.to_sql(nome_tabela, conn, if_exists='append', index=False)
+def adicionar_registros(data_frame: pd.DataFrame, nome_tabela: str, replace=False):
+    if replace:
+        conn = sqlalchemy.create_engine(URL_DB)  
+        data_frame.to_sql(nome_tabela, conn, if_exists='replace', index=False)
+    else:
+        conn = sqlalchemy.create_engine(URL_DB)  
+        data_frame.to_sql(nome_tabela, conn, if_exists='append', index=False)
