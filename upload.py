@@ -22,9 +22,10 @@ def validar_planilha(data_frame: pd.DataFrame) -> None:
     if data_frame.empty:
         raise ValueError('Planilha Vazia')
 
-    if list(data_frame.columns) != colunas_esperadas:
-        raise TypeError('Colunas Incompatíveis')
-    
+    colunas_nao_encontradas = [coluna for coluna in colunas_esperadas if coluna not in data_frame.columns]
+    if colunas_nao_encontradas:
+        raise TypeError(f'Colunas Essenciais Ausentes: {colunas_nao_encontradas}')
+
     # if not pd.api.types.is_datetime64_any_dtype(data_frame['Data']):
     #     raise TypeError('A coluna Data não é do tipo datetime.')
 
@@ -45,8 +46,9 @@ def validar_planilha_nao_faturado(data_frame: pd.DataFrame) -> None:
     if data_frame.empty:
         raise ValueError('Planilha Vazia')
 
-    if list(data_frame.columns) != colunas_esperadas:
-        raise TypeError('Colunas Incompatíveis')
+    colunas_nao_encontradas = [coluna for coluna in colunas_esperadas if coluna not in data_frame.columns]
+    if colunas_nao_encontradas:
+        raise TypeError(f'Colunas Essenciais Ausentes: {colunas_nao_encontradas}')
     
 def formatar_data_frame(df_original: pd.DataFrame) -> pd.DataFrame:
     data_frame = df_original.copy()
